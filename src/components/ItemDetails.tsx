@@ -1,51 +1,52 @@
-import React,{useEffect, useState} from 'react'
-import { useParams , useNavigate , Link } from 'react-router-dom'
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Item } from '../types';
 
 
-interface Item {
-  id:number;
-  title: string;
-  body : string;
-  userId : number;
+interface ItemDetailsProps {
+  items: Item[];
+  setItems: React.Dispatch<React.SetStateAction<Item[]>>;
 }
 
+const ItemDetails: React.FC<ItemDetailsProps> = ({items , setItems}) => {
+  const { id } = useParams<{ id: string }>();
+  const [item, setItem] = useState<Item | null>(null);
+  const navigate = useNavigate();
 
-
-
-const ItemDetails : React.FC = () => {
-  
-  const { id } = useParams<Record<string, string>>();
-  const [item , setItem] = useState<Item | null>(null);
-
-const navigate = useNavigate();
-
-useEffect(()=>{
-  fetch(`https://jsonplaceholder.typicode.com/posts/${id}`)
-  .then((response) => response.json())
-  .then((data) => {
-    console.log(data);
-    setItem(data)
+  useEffect(() => {
+    const foundItem = items.find(item => item.id === Number(id));
+    console.log('The item : ' , foundItem);
     
-  })
-  .catch((error)=> {
-    console.error('Error fetching data: ', error)
-  })
-}, [id])
+    if (foundItem) {
+      setItem(foundItem);
+    } else {
+      fetch(`https://jsonplaceholder.typicode.com/posts/${id}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setItem(data);
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+        });
+    }
+  }, [id, items]);
 
-const handleDelete = () => {
-  fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
-    method:'DELETE',
-  })
-  .then(()=> {
-    navigate('/')
-  })
-  .catch((error)=> {
-    console.error('Error deleting data:', error)
-  })
-}
-if(!item){
-  return <div>Loading ...</div>;
-}
+  const handleDelete = () => {
+    fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
+      method: 'DELETE',
+    })
+      .then(() => {
+        setItems(prevItems => prevItems.filter(item => item.id !== Number(id)));
+        navigate('/');
+      })
+      .catch((error) => {
+        console.error('Error deleting data:', error);
+      });
+  };
+
+  if (!item) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -54,7 +55,7 @@ if(!item){
       <button onClick={handleDelete}>Delete</button>
       <Link to={`/edit/${item.id}`}><button>Edit</button></Link>
     </div>
-  )
-}
+  );
+};
 
-export default ItemDetails
+export default ItemDetails;
