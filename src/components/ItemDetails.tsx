@@ -6,9 +6,10 @@ import { Item } from '../types';
 interface ItemDetailsProps {
   items: Item[];
   setItems: React.Dispatch<React.SetStateAction<Item[]>>;
+  handleDelete : (id: number) => void
 }
 
-const ItemDetails: React.FC<ItemDetailsProps> = ({items , setItems}) => {
+const ItemDetails: React.FC<ItemDetailsProps> = ({items , setItems , handleDelete}) => {
   const { id } = useParams<{ id: string }>();
   const [item, setItem] = useState<Item | null>(null);
   const navigate = useNavigate();
@@ -31,12 +32,12 @@ const ItemDetails: React.FC<ItemDetailsProps> = ({items , setItems}) => {
     }
   }, [id, items]);
 
-  const handleDelete = () => {
+  const handleLocalDelete = () => {
     fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
       method: 'DELETE',
     })
       .then(() => {
-        setItems(prevItems => prevItems.filter(item => item.id !== Number(id)));
+        handleDelete(Number(id))
         navigate('/');
       })
       .catch((error) => {
@@ -52,7 +53,7 @@ const ItemDetails: React.FC<ItemDetailsProps> = ({items , setItems}) => {
     <div>
       <h1>{item.title}</h1>
       <p>{item.body}</p>
-      <button onClick={handleDelete}>Delete</button>
+      <button onClick={handleLocalDelete}>Delete</button>
       <Link to={`/edit/${item.id}`}><button>Edit</button></Link>
     </div>
   );

@@ -5,23 +5,24 @@ import { Item } from '../types';
 interface ListItemsProps {
   items: Item[];
   setItems: React.Dispatch<React.SetStateAction<Item[]>>;
+  deletedItems : number[]
 }
 
-const ListItems: React.FC<ListItemsProps> = ({ items, setItems }) => {
+const ListItems: React.FC<ListItemsProps> = ({ items, setItems , deletedItems }) => {
   const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
-    if (items.length === 0) {
-      fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}`)
-        .then((response) => response.json())
-        .then((data) => {
-          setItems(data);
-        })
-        .catch((error) => {
-          console.error('Error fetching data:', error);
-        });
-    }
-  }, [page, setItems, items]);
+    // Fetch data every time the page changes
+    fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const filteredData = data.filter((item: Item) => !deletedItems.includes(item.id));
+        setItems(filteredData);
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+      });
+  }, [page, setItems , deletedItems]);
 
   return (
     <div>
@@ -33,7 +34,7 @@ const ListItems: React.FC<ListItemsProps> = ({ items, setItems }) => {
           </li>
         ))}
       </ul>
-      <button onClick={() => setPage((page) => page - 1)} disabled={page === 1}>Previous</button>
+      <button onClick={() => setPage((page) => Math.max(1, page - 1))} disabled={page === 1}>Previous</button>
       <button onClick={() => setPage((page) => page + 1)}>Next</button>
     </div>
   );
